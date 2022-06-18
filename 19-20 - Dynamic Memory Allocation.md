@@ -2,10 +2,9 @@
 
 **Heap**: Collection of variable sized blocks which are either allocated or free.
 
-**Allocate memory**: `void *malloc(size_t size)`
-If successful, returns a pointer to a memory block of `size` bytes. Boundary aligned 8-byte for x86 and 16-byte for x86-64.
-**Free memory**: `void free(void *p)`
-Where p must come from a previous call to `malloc` or `realloc`.
+**Allocate memory**: `void *malloc(size_t size)` If successful, returns a pointer to a memory block of `size` bytes. Boundary aligned 8-byte for x86 and 16-byte for x86-64.
+
+**Free memory**: `void free(void *p)` where p must come from a previous call to `malloc` or `realloc`.
 
 **Malloc example**
 
@@ -28,32 +27,40 @@ void foo(int n) {
 ```
 
 **Application constraints**
-Can issue any sequence of `malloc` and `free` requests.
-`free` request must be to a previously `malloc` block.
+
+1. Can issue any sequence of `malloc` and `free` requests.
+2. `free` request must be to a previously `malloc` block.
+
 **Allocator constraints**
-Cannot control the size of allocated blocks.
-Must respond immediately to `malloc` requests.
-Must allocate blocks from free memory.
-Must align blocks to alignment requirements.
-Can manipulate and modify only in free memory.
 
-**Allocator's goal**: Given a sequence of `malloc` and `free`, maximize throughput and peak memory utilization. These goals are often conflicting.
-**Throughput**: Number of operations per unit time.
-**Peak memory utilization**: How efficiently the allocator uses the heap. The sum of all the payloads divided by the total size of the heap.
+1. Cannot control the size of allocated blocks.
+2. Must respond immediately to `malloc` requests.
+3. Must allocate blocks from free memory.
+4. Must align blocks to alignment requirements.
+5. Can manipulate and modify only in free memory.
 
-**Internal fragmentation**: Occurs when memory block assigned to the process is larger than the memory requested.
-**External fragmentation**: When there is enough aggregate heap memory but no single free block is large enough.
+**Allocator's goal**: Given a sequence of `malloc` and `free`, maximize throughput and maximize peak memory utilization. These two goals are often conflicting.
 
-**Track allocated block size**: Requires additional space for every allocated block. These headers decrease the memory utilization.
-(In the picture, each box is 4-byte)
+<ins>Throughput</ins>: Number of operations per unit time.
+
+<ins>Peak memory utilization</ins>: How efficiently the allocator uses the heap. The sum of all the payloads divided by the total size of the heap.
+
+**Memory fragmentation**
+
+<ins>Internal fragmentation</ins>: Occurs when memory block assigned to the process is larger than the memory requested.
+
+<ins>External fragmentation</ins>: When there is enough aggregate heap memory but no single free block is large enough.
+
+**Track allocated block size**: Requires additional space for every allocated block. These headers decrease the memory utilization. (In the picture, each box is 4-byte)
 
 ![](images/Pasted%20image%2020220116151659.png)
 
 **Track free blocks**
-Method one: Implicit list using length to link all blocks.
-Method two: Explicit list among the free blocks with pointers.
-Method three: Different free lists for different size classes.
-Method four: Blocks sorted by size.
+
+- Method one: Implicit list using length to link all blocks.
+- Method two: Explicit list among the free blocks with pointers.
+- Method three: Different free lists for different size classes.
+- Method four: Blocks sorted by size.
 
 **Implicit list**: Besides block length, will have to mark as free or allocated. Since there is 8-byte or 16-byte alignment, the lower-order 3-bit or 4-bit are "always zero" for each block address. The lowest bit of the length can be used as a flag.
 
@@ -64,7 +71,9 @@ For the example below, assume 4-byte words aligned on 8-byte boundary. The heade
 Allocation cost: O(n), for looking through the list. Free cost: O(1). Memory usage depends on the allocation policy.
 
 **First fit**: First free block from the beginning.
+
 **Next fit**: First free block starting from end of previous search.
+
 **Best fit**: Choose best free block with fewest bytes left over.
 
 **Allocation by splitting**: Split the block if the allocated space is smaller than free space.
@@ -101,10 +110,13 @@ Compared to implicit list, allocation is faster as only free blocks are checked.
 **Allocating explicit free list**: Updates 6 pointers. Split as necessary.
 
 **Freeing explicit free list**
-LIFO policy inserts the freed block at the beginning of the free list. Constant time but may cause worse fragmentation.
+
+LIFO policy inserts the freed block at the beginning of the free list. Constant time (to free) but may cause worse fragmentation.
+
 Address-ordered policy inserts the freed block so that free list blocks are in address order. Decreases fragmentation but requires a search algorithm.
 
 **LIFO policy illustration**
+
 Free block at the front, allocated block at the back.
 
 ![](images/Pasted%20image%2020220118225402.png)
@@ -116,6 +128,7 @@ Free blocks at the front and back.
 ![](images/Pasted%20image%2020220118225917.png)
 
 **Seglist (Segregated list)**
+
 Given an array of free lists for each size class, allocate a new block (Size N) by searching through free lists for size M > N. If no block is found, request additional memory with `sbrk`. Allocate N bytes from the new memory and place the rest in the free list of the largest size class.
 
 Higher throughput because individual size classes are smaller than the entire list. Better memory utilization because first-fit search of segregated free list approximates a best-fit search of the entire heap.
