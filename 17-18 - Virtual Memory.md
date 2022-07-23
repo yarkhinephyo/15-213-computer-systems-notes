@@ -33,6 +33,8 @@ There are 3 subsets of virtual pages. _Unallocated_ means that the pages have no
 
 <ins>Page table entry</ins>: Each virtual page has a PTE. If the valid-bit is set, the virtual page is _cached_ and the address indicates the page in physical memory. If the valid-bit is not set, the address indicates the location on disk.
 
+<ins>Max virtual memory in 64-bit Windows</ins>: 256 TB. 40 bits of space to store physical page address in PTE. 12 bits of addresses per page (4096 bytes). 2<sup>53</sup> bytes = 256 TB.
+
 **Page hit**: Reference to a VM word that is in physical memory.
 
 **Page fault**: The address translation hardware infers that page is not in physical memory and triggers page fault (exception).
@@ -114,7 +116,7 @@ Even for a hit, there is still memory reference to retrieve PTE with PTE address
 
 **Translation lookaside buffer (TLB)**
 
-Small set-associative hardware cache in MMU. Maps virtual page numbers to physical page numbers. If PTEs have been cached in L1 instead, they may be evicted by other data references.
+Small set-associative hardware cache in MMU. Maps virtual page numbers to page table entries. If PTEs have been cached in L1 instead, they may be evicted by other data references.
 
 ![](images/Pasted%20image%2020220107112911.png)
 
